@@ -1,0 +1,8 @@
+$ cat .gitignore
+	
+parametros.conf
+log/*
+build.xml
+manifest.mf
+
+*~	
