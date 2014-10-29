@@ -1,5 +1,4 @@
 lector-sabre
 ============
 
-Lee archivos pnr
-Testing...
+Lector de archivos PNR
