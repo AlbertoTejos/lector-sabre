@@ -101,7 +101,7 @@ public class Ticket {
     }
 
     public String getTicket() {
-        return ticket;
+        return ticket.trim();
     }
 
     public void setTicket(String ticket) {

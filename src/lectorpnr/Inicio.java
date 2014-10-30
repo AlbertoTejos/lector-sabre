@@ -1,7 +1,7 @@
 
 package lectorpnr;
 
-import lectorair.systemtray.TryIcon;
+import lectorpnr.systemtray.TryIcon;
 
 
 public class Inicio {

@@ -5,11 +5,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.sql.Date;
 import java.sql.SQLException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import lectorpnr.datos.db.ArchivoDAO;
@@ -17,7 +15,7 @@ import lectorpnr.datos.db.Parametros;
 
 /**
  *
- * @author Felipe
+ * @author Alberto
  */
 public class Archivo {
 
@@ -37,9 +35,7 @@ public class Archivo {
     private ArrayList<Ticket> pajaseros;
     private ArrayList<Segmento> segmentos;
     private final ArrayList<String> bf;
-    //CONSTANTES
-    private final String AÑO_EMISION = getLineaString(getCharsLinea(getIndexLinea("M3")), 236, 4);
-    private final String FECHA_EMISION = getLineaString(getCharsLinea(0), 117, 5);
+
 
     public Archivo(File archivo) throws FileNotFoundException, IOException {
         this.archivo = archivo;
@@ -76,15 +72,17 @@ public class Archivo {
     }
 
     private void iniciarArchivo() throws FileNotFoundException, IOException {
-        
-        //LINEA CONSTANTE QUE INDICA EL TIPO DE TRANSACCION 
-        String verificacion = getLineaString(getCharsLinea(0), 14, 1);
+               
+        //INDICA EL TIPO DE TRANSACCION 
+        final String verificacion = getLineaString(getCharsLinea(0), 14, 1);
         
         //1 = SOLO TICKET
         //A = SOLO EMD
         //B = EMD ASOCIADO CON UN TICKET
-        
+        //5 = TICKET VACIO
+        //C = EMD VACIO
         //IGNORAMOS LOS TICKETS Y EMD VACIOS
+        
         if(!verificacion.equalsIgnoreCase("5") && !verificacion.equalsIgnoreCase("C")){
             iniciarArchivoTicket();
         }else{
@@ -107,31 +105,36 @@ public class Archivo {
 
     private void iniciarArchivoTicket() throws FileNotFoundException, IOException {
         
+        //CONSTANTES
+        //final String AÑO_EMISION = getLineaString(getCharsLinea(getIndexLinea("M3")), 236, 4);
+        final String FECHA_EMISION = getLineaString(getCharsLinea(0), 117, 5);
+        
         //FORMATO YYYY-MMM-DD (USUARIO SQL EN ESPAÑOL)
-        this.setFechaEmision(getFechaSQL(FECHA_EMISION, AÑO_EMISION));
+        this.setFechaEmision(getFechaSQL(FECHA_EMISION));
         this.setNumeroPnr(getLineaString(getCharsLinea(0), 54, 8));
         
         //1 = SOLO TICKET
         //A = SOLO EMD
-        //B = EMD ASOCIADO CON UN TICKET        
+        //B = EMD ASOCIADO CON UN TICKET   
+        
         final boolean esTicket = getLineaString(getCharsLinea(0), 14, 1).equals("1");
         final boolean esEMD = getLineaString(getCharsLinea(0), 14, 1).equals("A");
-        final boolean esAsociado = getLineaString(getCharsLinea(0), 14, 1).equals("B"); 
 
         //CANTIDAD DE INCIDENCIAS
         final int CANTIDAD_PERSONAS = getIncidencias("M1");
         final int CANTIDAD_SEGMENTOS = getIncidencias("M3"); 
         //DATOS DEL EMD EN LA LINEA MG
-        final int EMD_DATOS = getIndexLinea("MG");
+        final int LINEA_EMD_DATOS = getIndexLinea("MG");
         
         //SI ES UN TICKET...
         if(esTicket){
             
-            //M2 = LINEA CON DATOS DE NEGOCIO (SOLO APARECE)
+            //M2 = LINEA CON DATOS DE NEGOCIO (SOLO APARECE EN EL TICKET SOLO)
+            
             double valor_total = Double.parseDouble(getLineaString(getCharsLinea(getIndexLinea("M2")), 80, 8));
             double monto_usd = Double.parseDouble(getLineaString(getCharsLinea(getIndexLinea("M2")), 38, 8));
             double valor_usd = (valor_total/monto_usd);
-            double redoneado_total = Math.round(valor_usd*100.0) / 100.0;
+            double redoneado_total = Math.round(valor_usd*100.0) / 100.0; 
             this.setValor_final(redoneado_total);  
             double valor_neto_ = Double.parseDouble(getLineaString(getCharsLinea(getIndexLinea("M2")), 146, 8));
             double resultado_neto = (valor_neto_/valor_usd);
@@ -168,75 +171,100 @@ public class Archivo {
                     this.getRuta();
                 }
 
-            //RECORREMOS LOS TICKETS...
-            if(CANTIDAD_PERSONAS > 0){
-                for (int i = 1; i <= CANTIDAD_PERSONAS; i++) {
-                    if(esTicket){
-                        String identificador_ticket = "M2"+0+i;
-                        String identificador_datos_personas = "M1"+0+i;
-                        Ticket tic = new Ticket();
-                        tic.setNombrePasajero(getLineaString(getCharsLinea(getIndexLinea(identificador_datos_personas)), 5, 64));
-                        tic.setTicket(getLineaString(getCharsLinea(getIndexLinea(identificador_ticket)), 234, 10));
-                        tic.setTipoPasajero(getLineaString(getCharsLinea(getIndexLinea(identificador_ticket)), 5, 3));
-                        tic.setfPago(getLineaString(getCharsLinea(getIndexLinea(identificador_ticket)), 20, 1));
-                        tic.setComision(Double.parseDouble(getLineaString(getCharsLinea(getIndexLinea(identificador_ticket)), 128, 8)));
-                        tic.setfPago(getLineaString(getCharsLinea(getIndexLinea(identificador_ticket)), 20, 1));
-                        tic.setcLineaAerea(getLineaString(getCharsLinea(getIndexLinea("M3")), 59, 2));
-                        this.pajaseros.add(tic);   
+                //RECORREMOS LOS TICKETS...
+                if(CANTIDAD_PERSONAS > 0){
+                    for (int i = 1; i <= CANTIDAD_PERSONAS; i++) {
+                        if(esTicket){
+                            String identificador_ticket = "M2"+0+i;
+                            String identificador_datos_personas = "M1"+0+i;
+                            int incidencias_ticket = getIncidencias(identificador_ticket);
+                            int incidencias_personas = getIncidencias(identificador_datos_personas);
+                            for (int j = 0; j < incidencias_personas; j++) {
+                                Ticket tic = new Ticket();
+                                tic.setNombrePasajero(getLineaString(getCharsLinea(getIndexLinea(identificador_datos_personas)), 5, 64));
+                                    for (int k = 0; k < incidencias_ticket; k++) {
+                                        tic.setTicket(getLineaString(getCharsLinea(getIndexLinea(identificador_ticket)), 234, 10));
+                                        tic.setTipoPasajero(getLineaString(getCharsLinea(getIndexLinea(identificador_ticket)), 5, 3));
+                                        tic.setfPago(getLineaString(getCharsLinea(getIndexLinea(identificador_ticket)), 20, 1));
+                                        tic.setComision(Double.parseDouble(getLineaString(getCharsLinea(getIndexLinea(identificador_ticket)), 128, 8)));
+                                        tic.setfPago(getLineaString(getCharsLinea(getIndexLinea(identificador_ticket)), 20, 1));
+                                        tic.setcLineaAerea(getLineaString(getCharsLinea(getIndexLinea("M3")), 59, 2));
+                                        this.pajaseros.add(tic);   
+                                }
+                            }
+                            
+                           
+                        }
                     }
+                }
+            }
+        }//SE INSERTA EL TICKET
+        
+        //SI ES EMD        
+        if(esEMD){
+            
+            //SI LA LINEA MG TIENE INCIDENCIAS, EXTRAEMOS LOS DATOS CONSTANTES DEL EMD
+            if(LINEA_EMD_DATOS > 0 && CANTIDAD_PERSONAS > 0){
+                
+                for (int i = 1; i <= CANTIDAD_PERSONAS; i++) {
+                    Ticket tic = new Ticket();
+                    String identificador_datos_personas = "M1"+0+i;
+                    this.fecha_remision = getFechaEmision();
+                    this.setNumeroPnr(getLineaString(getCharsLinea(0), 54, 8));
+                    tic.setNombrePasajero(getLineaString(getCharsLinea(getIndexLinea(identificador_datos_personas)), 9, 64));
+                    String ticket = getLineaString(getCharsLinea(LINEA_EMD_DATOS), 44, 10).trim();
+                    if(!ticket.equals("")){
+                        tic.setTicket(ticket);
+                    }
+                    tic.setCodEmd(getLineaString(getCharsLinea(LINEA_EMD_DATOS), 26, 14));
+                    double valor_total = Double.parseDouble(getLineaString(getCharsLinea(getIndexLinea("MG")), 92, 18));
+                    tic.setValorEmd(valor_total);
+                    tic.setfPago(getLineaString(getCharsLinea(getIndexLinea("MG")), 167, 2));
+                    tic.setcLineaAerea(getLineaString(getCharsLinea(LINEA_EMD_DATOS), 26, 3));
+                    tic.setTipoPasajero(getLineaString(getCharsLinea(LINEA_EMD_DATOS), 5, 3));
+                    tic.setComision(Double.parseDouble(getLineaString(getCharsLinea(getIndexLinea("MG")), 128, 18)));
+                    this.pajaseros.add(tic); 
+                }  
+            }
+            
+            //RECORREMOS LOS SEGMENTOS
+            if (CANTIDAD_SEGMENTOS > 0) {
+                for (int j = 1; j <= CANTIDAD_SEGMENTOS; j++) {
+                    String identificador = "M3"+0+j;
+                    final int index_linea = getIndexLinea(identificador);
+                    Segmento seg;
+                    seg = new Segmento();
+                    seg.setFechaSalida(getLineaString(getCharsLinea(index_linea), 10, 5));
+                    seg.setCodSalida(getLineaString(getCharsLinea(index_linea), 19, 3));
+                    seg.setNomSalida(getLineaString(getCharsLinea(index_linea), 22, 17));
+                    seg.setHorSalida(getLineaString(getCharsLinea(index_linea), 68, 5));
+                    
+                    final int dias_de_viaje = Integer.parseInt(getLineaString(getCharsLinea(index_linea), 91, 1));
+                    
+                    if(dias_de_viaje != 0){
+                        seg.setFechaLlegada(sumarDias(seg.getFechaSalida() ,dias_de_viaje));
+                    }else{
+                        seg.setFechaLlegada(seg.getFechaSalida());
+                    }
+                        
+                    seg.setCodLlegada(getLineaString(getCharsLinea(index_linea), 39, 3));
+                    seg.setNomLlegada(getLineaString(getCharsLinea(index_linea), 42, 17));
+                    seg.setHorLLegada(getLineaString(getCharsLinea(index_linea), 73, 5));
+                    seg.setNumeroVuelo(getLineaString(getCharsLinea(index_linea), 61, 8));
+                    seg.setNumeroSegmento(Integer.parseInt(getLineaString(getCharsLinea(index_linea), 3, 2)));
+                    seg.setLineaAerea(getLineaString(getCharsLinea(getIndexLinea(identificador)), 59, 2));
+                    this.segmentos.add(seg);
+                    this.getRuta();
                 }
             }
         }
     }
-}
+
             
         
-//        
-//        if(esEMD){
-//            
-//            if(EMD_DATOS > 0){
-//                double valor_total = Double.parseDouble(getLineaString(getCharsLinea(getIndexLinea("MG")), 92, 18));
-//                this.setValor_final(valor_total);
-////                double monto_usd = Double.parseDouble(getLineaString(getCharsLinea(getIndexLinea("MG")), 38, 8));
-////                double valor_usd = (valor_total/monto_usd);
-////                double redoneado_total = Math.round(valor_usd*100.0) / 100.0;
-////                this.setValor_final(redoneado_total);  
-////                double valor_neto_ = Double.parseDouble(getLineaString(getCharsLinea(getIndexLinea("MG")), 146, 8));
-////                double resultado_neto = (valor_neto_/valor_usd);
-////                double redondeado_neto = Math.round(resultado_neto * 100.0) / 100.0;
-////                this.setValor_neto(redondeado_neto);
-////                this.setMoneda(getLineaString(getCharsLinea(getIndexLinea("MG")), 35, 3));
-//            }
-//
-//    
-//        
-//        
-//
-//        
-//                
-//                                    
-//                if (esEMD && EMD_DATOS > 0) {
-//                    Ticket tic = new Ticket();
-//                    String identificador_datos_personas = "M1"+0+i;
-//                    this.fecha_remision = this.fechaEmision;
-//                    this.setNumeroPnr(getLineaString(getCharsLinea(0), 54, 8));
-//                    tic.setNombrePasajero(getLineaString(getCharsLinea(getIndexLinea(identificador_datos_personas)), 9, 64));
-//                    tic.setTicket(getLineaString(getCharsLinea(EMD_DATOS), 44, 10));
-//                    tic.setCodEmd(getLineaString(getCharsLinea(EMD_DATOS), 26, 14));
-//                    tic.setcLineaAerea(getLineaString(getCharsLinea(EMD_DATOS), 26, 3));
-//                    tic.setTipoPasajero(getLineaString(getCharsLinea(EMD_DATOS), 5, 3));
-//                    tic.setComision(Double.parseDouble(getLineaString(getCharsLinea(getIndexLinea("MG")), 128, 18)));
-//                    this.pajaseros.add(tic); 
-//                }
-//                
-////            }
-////        }
-//    
-
-          
             
-            
-            
+    /** @return Fecha de llegada
+     */       
     private String sumarDias(String fecha_salida, int dias_a_sumar) {
        
         String fecha_f = fecha_salida.substring(0, 2);
@@ -298,11 +326,9 @@ public class Archivo {
 
     private String getNumFile() throws FileNotFoundException, IOException {
         String incidencia = Parametros.getInstance().getSegmento_numfile();
-        //System.out.println(incidencia);
         int largo = incidencia.length();
         for (String cadena : bf) {
             if (!cadena.equals("") && cadena.length() > largo) {
-                //System.out.println(incidencia+" - "+cadena.substring(0,largo));
                 if (cadena.substring(0, largo).equals(incidencia)) {
                     String cadena_final = cadena.substring(largo).trim();
                     String[] split = cadena_final.split(" ");
@@ -313,25 +339,6 @@ public class Archivo {
         }
         return "";
     }
-    
-    public void tarifasTest(){
-        
-//        double tax_1 = Double.parseDouble(getLineaString(getCharsLinea(10), 46, 1));
-//        double monto_tax_1 = Double.parseDouble(getLineaString(getCharsLinea(10), 47, 7));
-//        double id_tax_1 = Double.parseDouble(getLineaString(getCharsLinea(10), 54, 2));
-//        
-//        double tax_2 = Double.parseDouble(getLineaString(getCharsLinea(10), 56, 1));
-//        double monto_tax_2 = Double.parseDouble(getLineaString(getCharsLinea(10), 57, 7));
-//        double id_tax_2 = Double.parseDouble(getLineaString(getCharsLinea(10), 64, 2));
-//        
-//        double tax_3 = Double.parseDouble(getLineaString(getCharsLinea(10), 66, 1));
-//        double monto_tax_3 = Double.parseDouble(getLineaString(getCharsLinea(10), 67, 7));
-//        double id_tax_3 = Double.parseDouble(getLineaString(getCharsLinea(10), 74, 2));
-//        
-//        double signo_tarifa_total = Double.parseDouble(getLineaString(getCharsLinea(10), 76, 1));
-//        double tarifa_total = Double.parseDouble(getLineaString(getCharsLinea(10), 77, 11));
-    }
-    
     
     @Override
     public String toString() {
@@ -445,16 +452,14 @@ public class Archivo {
     }
 
     private enum Meses {
-    JAN, FEB, MAR, APR, MAY, JUN, JUL, AUG, SEP, OCT, NOV, DEC;
+        JAN, FEB, MAR, APR, MAY, JUN, JUL, AUG, SEP, OCT, NOV, DEC;
     }
     
-    //28DEC
-    private String getFechaSQL(String fecha, String año){
+
+    private String getFechaSQL(String fecha){
         
         String mes = fecha.substring(2 , fecha.length());
-        //DEC
         String dia = fecha.substring(0 , 2);
-        //28
         Meses meses = Meses.valueOf(mes);
         switch(meses){
             case JAN : fecha = "01";
@@ -484,15 +489,13 @@ public class Archivo {
         }
         
         if (fecha.length() == 2) {
-            //return año+"-"+mes+"-"+dia;
+            
+            Calendar now = Calendar.getInstance();
+            int año = now.get(Calendar.YEAR);
             return dia+"-"+fecha+"-"+año;
-            //return mes+"-"+dia+"-"+año;
-            //RETORNA 2013-07-11
         }
         
         return "";
-
-        
     }
     
     public String getTipo() {
@@ -517,7 +520,7 @@ public class Archivo {
     public static void main(String[] args) throws FileNotFoundException, IOException{
         try {
         Archivo lc;
-        lc = new Archivo(new File("C:\\Users\\Felipe\\Desktop\\pruebas\\lectura\\BROPAV00.PNR"));
+        lc = new Archivo(new File("C:\\Users\\Felipe\\Desktop\\pruebas\\lectura\\TEERKV00.PNR"));
         System.out.println(lc);
             ArchivoDAO a = new ArchivoDAO();
             try {
