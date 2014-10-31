@@ -9,6 +9,7 @@ import java.awt.TrayIcon;
 import java.awt.TrayIcon.MessageType;
 import java.io.File;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
@@ -25,7 +26,7 @@ import lectorpnr.systemtray.listeners.MyMouseListener;
 public class TryIcon {
 
     private Image image = new ImageIcon(getClass().getResource("avion.png")).getImage() ;
-    private final TrayIcon trayIcon = new TrayIcon(image, "LectorOris");
+    private final TrayIcon trayIcon = new TrayIcon(image, "LectorSabre");
     private Timer timer;    
     private boolean band;
     private Parametros param;
@@ -58,12 +59,11 @@ public class TryIcon {
 
     }
 
-    //Muestra una burbuja con la accion que se realiza
     public void MensajeTrayIcon(String texto, MessageType tipo){
         trayIcon.displayMessage("Lector TKT : ", texto, tipo);
     }
 
-    //Clase interna que manejara una accion en segundo plano
+    //TAREA EN SEGUNDO PLANO
     class TareaBackGraund extends TimerTask {
         int cont = 0;
        
@@ -85,7 +85,7 @@ public class TryIcon {
             if (a.hayNuevos()) {
                 File[] files = a.getNuevosFicheros();
                 cantidad = files.length;
-                System.out.println(cantidad);
+                System.out.println("Cantidad de archivos encontrados: "+cantidad);
                 for (File file : files) {
                     Archivo lc=null;
                     boolean exito = false;
@@ -98,7 +98,7 @@ public class TryIcon {
                         a.moverLeidos(file);
                         leidos++;
                         exito = true;
-                    } catch (Exception ex) {
+                    } catch (IOException | SQLException ex) {
                         System.out.println("Error IO : "+file.getAbsolutePath()+"\n"+ex);
                         errores++;
                         try {

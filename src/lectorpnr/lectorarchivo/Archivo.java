@@ -25,8 +25,8 @@ public class Archivo {
     private String moneda;
     private double valor_neto;
     private double valor_final;
-    private double valor_tasas; //tasas embarque tax
-    private String numero_file;//numero de negocio se extrae desde parametros.conf
+    private double valor_tasas;
+    private String numero_file;
     private String fecha_anulacion;
     private String fecha_remision;
     private String ruta;
@@ -73,16 +73,13 @@ public class Archivo {
 
     private void iniciarArchivo() throws FileNotFoundException, IOException {
                
-        //INDICA EL TIPO DE TRANSACCION 
+        //Indica el tipo de transacción
         final String verificacion = getLineaString(getCharsLinea(0), 14, 1);
+
+        //5 = Ticket vacío
+        //C = EMD vacío
         
-        //1 = SOLO TICKET
-        //A = SOLO EMD
-        //B = EMD ASOCIADO CON UN TICKET
-        //5 = TICKET VACIO
-        //C = EMD VACIO
-        //IGNORAMOS LOS TICKETS Y EMD VACIOS
-        
+        //Ignoramos los tickets y emd vacíos
         if(!verificacion.equalsIgnoreCase("5") && !verificacion.equalsIgnoreCase("C")){
             iniciarArchivoTicket();
         }else{
@@ -105,32 +102,29 @@ public class Archivo {
 
     private void iniciarArchivoTicket() throws FileNotFoundException, IOException {
         
-        //CONSTANTES
-        //final String AÑO_EMISION = getLineaString(getCharsLinea(getIndexLinea("M3")), 236, 4);
+        //Constantes
         final String FECHA_EMISION = getLineaString(getCharsLinea(0), 117, 5);
         
-        //FORMATO YYYY-MMM-DD (USUARIO SQL EN ESPAÑOL)
+        //Formato yyyy-mmm-dd (Usuario SQL en español)
         this.setFechaEmision(getFechaSQL(FECHA_EMISION));
         this.setNumeroPnr(getLineaString(getCharsLinea(0), 54, 8));
         
-        //1 = SOLO TICKET
-        //A = SOLO EMD
-        //B = EMD ASOCIADO CON UN TICKET   
+        //1 = Solo ticket
+        //A = Solo EMD
+        //B = EMD asociado con un número de ticket   
         
         final boolean esTicket = getLineaString(getCharsLinea(0), 14, 1).equals("1");
         final boolean esEMD = getLineaString(getCharsLinea(0), 14, 1).equals("A");
 
-        //CANTIDAD DE INCIDENCIAS
+        //Cantidad de incidencias
         final int CANTIDAD_PERSONAS = getIncidencias("M1");
         final int CANTIDAD_SEGMENTOS = getIncidencias("M3"); 
-        //DATOS DEL EMD EN LA LINEA MG
+        //Linea MG con los datos del EMD
         final int LINEA_EMD_DATOS = getIndexLinea("MG");
         
-        //SI ES UN TICKET...
         if(esTicket){
             
-            //M2 = LINEA CON DATOS DE NEGOCIO (SOLO APARECE EN EL TICKET SOLO)
-            
+            //M2 = Linea con los datos de negocio (Aparece en el ticket solo)
             double valor_total = Double.parseDouble(getLineaString(getCharsLinea(getIndexLinea("M2")), 80, 8));
             double monto_usd = Double.parseDouble(getLineaString(getCharsLinea(getIndexLinea("M2")), 38, 8));
             double valor_usd = (valor_total/monto_usd);
@@ -142,7 +136,7 @@ public class Archivo {
             this.setValor_neto(redondeado_neto);
             this.setMoneda(getLineaString(getCharsLinea(getIndexLinea("M2")), 35, 3));
             
-            //RECORREMOS LOS SEGMENTOS
+            //Recorremos los segmentos
             if (CANTIDAD_SEGMENTOS > 0) {
                 for (int j = 1; j <= CANTIDAD_SEGMENTOS; j++) {
                     String identificador = "M3"+0+j;
@@ -171,7 +165,7 @@ public class Archivo {
                     this.getRuta();
                 }
 
-                //RECORREMOS LOS TICKETS...
+                //Recorremos los tickets
                 if(CANTIDAD_PERSONAS > 0){
                     for (int i = 1; i <= CANTIDAD_PERSONAS; i++) {
                         if(esTicket){
@@ -198,12 +192,11 @@ public class Archivo {
                     }
                 }
             }
-        }//SE INSERTA EL TICKET
-        
-        //SI ES EMD        
+        }
+               
         if(esEMD){
             
-            //SI LA LINEA MG TIENE INCIDENCIAS, EXTRAEMOS LOS DATOS CONSTANTES DEL EMD
+            //S la linea MG tiene incidencias, extraemos los datos del EMD
             if(LINEA_EMD_DATOS > 0 && CANTIDAD_PERSONAS > 0){
                 
                 for (int i = 1; i <= CANTIDAD_PERSONAS; i++) {
@@ -227,7 +220,7 @@ public class Archivo {
                 }  
             }
             
-            //RECORREMOS LOS SEGMENTOS
+            //Recorremos los segmentos
             if (CANTIDAD_SEGMENTOS > 0) {
                 for (int j = 1; j <= CANTIDAD_SEGMENTOS; j++) {
                     String identificador = "M3"+0+j;
@@ -259,12 +252,7 @@ public class Archivo {
             }
         }
     }
-
-            
-        
-            
-    /** @return Fecha de llegada
-     */       
+    
     private String sumarDias(String fecha_salida, int dias_a_sumar) {
        
         String fecha_f = fecha_salida.substring(0, 2);
@@ -490,6 +478,7 @@ public class Archivo {
         
         if (fecha.length() == 2) {
             
+            //Aaño actual
             Calendar now = Calendar.getInstance();
             int año = now.get(Calendar.YEAR);
             return dia+"-"+fecha+"-"+año;

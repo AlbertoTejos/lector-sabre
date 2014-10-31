@@ -10,7 +10,7 @@ public class ConfiguracionListener implements ActionListener{
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        FrameConfiguracion frame= new FrameConfiguracion();
+        FrameConfiguracion frame = new FrameConfiguracion();
     }
     
 }
