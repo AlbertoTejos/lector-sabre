@@ -1,9 +1,12 @@
 $ cat .gitignore	
 
+nbproject/private/
 parametros.conf
 log/*
 build.xml
 manifest.mf
+*.class
+*.jar
 
 *~	
 /dist/
