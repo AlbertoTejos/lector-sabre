@@ -136,6 +136,8 @@ public class Archivo {
             this.setValor_neto(redondeado_neto);
             this.setMoneda(getLineaString(getCharsLinea(getIndexLinea("M2")), 35, 3));
             
+            System.out.println("MENSAJE");
+            
             //Recorremos los segmentos
             if (CANTIDAD_SEGMENTOS > 0) {
                 for (int j = 1; j <= CANTIDAD_SEGMENTOS; j++) {
