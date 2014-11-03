@@ -146,7 +146,7 @@ public class Archivo {
                     seg.setFechaSalida(getLineaString(getCharsLinea(index_linea), 10, 5));
                     seg.setCodSalida(getLineaString(getCharsLinea(index_linea), 19, 3));
                     seg.setNomSalida(getLineaString(getCharsLinea(index_linea), 22, 17));
-                    seg.setHorSalida(getLineaString(getCharsLinea(index_linea), 68, 5));
+                    seg.setHorSalida(getLineaString(getCharsLinea(index_linea), 68, 5));             
                     seg.setCodClase(getLineaString(getCharsLinea(index_linea), 66, 2));
                     
                     final int dias_de_viaje = Integer.parseInt(getLineaString(getCharsLinea(index_linea), 91, 1));
