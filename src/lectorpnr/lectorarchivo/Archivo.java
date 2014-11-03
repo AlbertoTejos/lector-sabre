@@ -171,6 +171,7 @@ public class Archivo {
                         if(esTicket){
                             String identificador_ticket = "M2"+0+i;
                             String identificador_datos_personas = "M1"+0+i;
+                            int lineaFormaPago = (getIndexLinea(identificador_ticket)+3);
                             int incidencias_ticket = getIncidencias(identificador_ticket);
                             int incidencias_personas = getIncidencias(identificador_datos_personas);
                             for (int j = 0; j < incidencias_personas; j++) {
@@ -183,6 +184,14 @@ public class Archivo {
                                         tic.setComision(Double.parseDouble(getLineaString(getCharsLinea(getIndexLinea(identificador_ticket)), 128, 8)));
                                         tic.setfPago(getLineaString(getCharsLinea(getIndexLinea(identificador_ticket)), 20, 1));
                                         tic.setcLineaAerea(getLineaString(getCharsLinea(getIndexLinea("M3")), 59, 2));
+                                        String contenidoLineaFormaPago = getLineaString(getCharsLinea(lineaFormaPago), 1, 2);
+                                        //Tasas
+                                        String signoTasas = getLineaString(getCharsLinea(getIndexLinea(identificador_ticket)), 46, 1);
+                                        this.setValor_tasas((Double.parseDouble(signoTasas+getLineaString(getCharsLinea(getIndexLinea(identificador_ticket)), 47, 7))));
+                                        //Investigar las siglas de las otras formas de pago
+                                        if (contenidoLineaFormaPago.equals("CA")) {
+                                            tic.setfPago(contenidoLineaFormaPago);
+                                        }
                                         this.pajaseros.add(tic);   
                                 }
                             }
@@ -202,8 +211,11 @@ public class Archivo {
                 for (int i = 1; i <= CANTIDAD_PERSONAS; i++) {
                     Ticket tic = new Ticket();
                     String identificador_datos_personas = "M1"+0+i;
+                    int posicionLineaMG = getIndexLinea("MG");
+                    int lineaTasas = (posicionLineaMG+3);
                     this.fecha_remision = getFechaEmision();
                     this.setNumeroPnr(getLineaString(getCharsLinea(0), 54, 8));
+                    this.setValor_tasas(Double.parseDouble(getLineaString(getCharsLinea(lineaTasas), 3, 21)));
                     tic.setNombrePasajero(getLineaString(getCharsLinea(getIndexLinea(identificador_datos_personas)), 9, 64));
                     String ticket = getLineaString(getCharsLinea(LINEA_EMD_DATOS), 44, 10).trim();
                     if(!ticket.equals("")){
@@ -509,7 +521,7 @@ public class Archivo {
     public static void main(String[] args) throws FileNotFoundException, IOException{
         try {
         Archivo lc;
-        lc = new Archivo(new File("C:\\Users\\Felipe\\Desktop\\pruebas\\lectura\\TEERKV00.PNR"));
+        lc = new Archivo(new File("C:\\Users\\Felipe\\Desktop\\pruebas\\lectura\\TEMYOI00.PNR"));
         System.out.println(lc);
             ArchivoDAO a = new ArchivoDAO();
             try {
