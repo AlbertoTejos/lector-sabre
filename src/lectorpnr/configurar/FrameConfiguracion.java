@@ -29,7 +29,7 @@ public class FrameConfiguracion extends javax.swing.JFrame {
         this.setLocationRelativeTo(null);
         this.setVisible(true);
         this.setResizable(false);
-        this.setIconImage(new ImageIcon(getClass().getResource("avion.png")).getImage());
+        this.setIconImage(new ImageIcon(getClass().getResource("ico_avion.gif")).getImage());
         inicializar();
        
     }
