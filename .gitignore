@@ -1,13 +1,25 @@
 $ cat .gitignore	
 
-*.class
-*.jar
-nbproject/private/
+# Specific Files#
 parametros.conf
 log/*
 build.xml
 manifest.mf
 
+# Class Files #
+*.class
 
-*~	
-/dist/
+# Package Files #
+*.jar
+*.war
+*.ear
+
+# NetBeans specific #
+nbproject/private/
+build/
+nbbuild/
+dist/
+nbdist/
+nbactions.xml
+nb-configuration.xml
+
