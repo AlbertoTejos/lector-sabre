@@ -95,7 +95,7 @@ public class ArchivoDAO extends Conexion {
                         + arc.getRuta() + "','"
                         + arc.getMoneda() + "','"
                         + "0" + "','"
-                        + "0" + "','"
+                        + arc.getValor_tasas() + "','"
                         + tic.getValorEmd() + "','"
                         + tic.getComision() + "','"
                         + tic.getfPago() + "','"
