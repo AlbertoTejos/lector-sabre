@@ -67,7 +67,7 @@ public class Archivo {
                     bf.add(cadena);
                 }
             }
-            System.out.println("Contenido del archivo: " + bf);
+            System.out.println("Contenido completo del archivo: " + bf);
         }
     }
 
