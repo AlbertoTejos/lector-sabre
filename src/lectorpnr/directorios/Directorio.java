@@ -19,10 +19,7 @@ public class Directorio {
         this.ruta_errores = ruta_errores;
     }
     
-    /**
-     * Si hay ficheros nuevos en nuestra ruta de lectura, retornamos un true
-     * @return Valor booleano
-    */
+    
     public boolean hayNuevos(){
         File f = new File(ruta_lectura);
         if (f.exists()) {
