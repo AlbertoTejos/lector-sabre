@@ -9,9 +9,9 @@ import java.nio.channels.FileChannel;
 import javax.swing.JOptionPane;
 
 public class Directorio {
-    private String ruta_lectura;
-    private String ruta_leidos;
-    private String ruta_errores;
+    private final String ruta_lectura;
+    private final String ruta_leidos;
+    private final String ruta_errores;
 
     public Directorio(String ruta_lectura, String ruta_leidos, String ruta_errores) {
         this.ruta_lectura = ruta_lectura;
@@ -19,7 +19,10 @@ public class Directorio {
         this.ruta_errores = ruta_errores;
     }
     
-    
+    /**
+     * Si hay ficheros nuevos en nuestra ruta de lectura, retornamos un true
+     * @return Valor booleano
+    */
     public boolean hayNuevos(){
         File f = new File(ruta_lectura);
         if (f.exists()) {
@@ -35,8 +38,8 @@ public class Directorio {
     }
     
     /**
-     *
-     * @return
+     * Guardamos en un arreglo todos los ficheros nuevos
+     * @return Arreglo de ficheros
      */
     public File[] getNuevosFicheros(){
         File f = new File(ruta_lectura);
@@ -52,7 +55,11 @@ public class Directorio {
         return null;
     }
     
-    
+    /**
+     * Movemos los archivos leidos
+     * @param original
+     * @throws IOException 
+     */
     @SuppressWarnings("empty-statement")
     public void moverLeidos(File original) throws IOException{
         File destFile = new File(this.ruta_leidos+"\\"+original.getName());
@@ -87,9 +94,7 @@ public class Directorio {
         
         if (original.exists()) {
             original.deleteOnExit();
-        }
-
-        
+        }  
     }
     
     @SuppressWarnings("empty-statement")
@@ -107,9 +112,7 @@ public class Directorio {
 
             long count = 0;
             long size = origen.size();              
-            while((count += destino.transferFrom(origen, count, size-count))<size);
-            
-            
+            while((count += destino.transferFrom(origen, count, size-count))<size);   
         }
         finally {
             if(origen != null) {

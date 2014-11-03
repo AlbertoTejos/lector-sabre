@@ -7,10 +7,10 @@ import java.sql.SQLException;
 public class Conexion {
 
     private java.sql.Connection con = null;
-    private String url;
-    private String userName ;
-    private String password ;
-    private Parametros par;
+    private final String url;
+    private final String userName ;
+    private final String password ;
+    private final Parametros par;
     // Indica al controlador que debe utilizar un cursor de servidor, // lo que permite más de una instrucción activa // en una conexión.
     private final String selectMethod = "cursor";
 
@@ -21,10 +21,6 @@ public class Conexion {
         this.password = par.getContrasena();
     }
 
-    
-    
-  
-    
     private String getConnectionUrl() {
         return url + /*serverName + ":" + portNumber + ";databaseName=" + databaseName +*/ ";selectMethod=" + selectMethod + ";";
     }
@@ -52,7 +48,7 @@ public class Conexion {
             if (con != null) {
                 return true;
             }
-        } catch (Exception e) {
+        } catch (ClassNotFoundException | SQLException e) {
             return false;
         }
         return false;
@@ -61,7 +57,9 @@ public class Conexion {
     public static void main(String[] args){
         
         Conexion conn = new Conexion();
-        //Información del servidor y controlador
+        /**
+         * Información del servidor
+         */
         conn.displayDbProperties();
     }
 
