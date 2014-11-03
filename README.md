@@ -1,4 +1,4 @@
 lector-sabre
 ============
 
-Lector de archivos PNR
+Lector de tickets aéreos en formato PNR
