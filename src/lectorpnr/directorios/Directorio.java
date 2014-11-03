@@ -64,8 +64,6 @@ public class Directorio {
             destFile.createNewFile();
         }
         
-        System.out.println("Testeo .class");
-        
         FileChannel origen = null;
         FileChannel destino = null;
         
