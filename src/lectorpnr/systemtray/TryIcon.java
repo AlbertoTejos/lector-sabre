@@ -25,7 +25,7 @@ import lectorpnr.systemtray.listeners.MyMouseListener;
 
 public class TryIcon {
 
-    private Image image = new ImageIcon(getClass().getResource("avion.png")).getImage() ;
+    private Image image = new ImageIcon(getClass().getResource("ico_avion.gif")).getImage() ;
     private final TrayIcon trayIcon = new TrayIcon(image, "LectorSabre");
     private Timer timer;    
     private boolean band;
@@ -56,14 +56,14 @@ public class TryIcon {
            param = Parametros.getInstance();
            timer = new Timer();           
            timer.schedule(new TareaBackGraund(),0, ((param.getTiempo_conexion()*60)*1000) );//Se ejecuta cada 10 segundos
-
+           
     }
 
     public void MensajeTrayIcon(String texto, MessageType tipo){
         trayIcon.displayMessage("Lector TKT : ", texto, tipo);
     }
 
-    //TAREA EN SEGUNDO PLANO
+    //Tarea en background
     class TareaBackGraund extends TimerTask {
         int cont = 0;
        
