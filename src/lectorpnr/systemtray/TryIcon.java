@@ -98,8 +98,9 @@ public class TryIcon {
                         a.moverLeidos(file);
                         leidos++;
                         exito = true;
-                    } catch (IOException | SQLException ex) {
+                    } catch (IOException | IndexOutOfBoundsException  | SQLException ex ) {
                         System.out.println("Error IO : "+file.getAbsolutePath()+"\n"+ex);
+                        System.out.println("");
                         errores++;
                         try {
                             a.moverErrores(file);
