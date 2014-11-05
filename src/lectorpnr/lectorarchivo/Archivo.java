@@ -196,7 +196,7 @@ public class Archivo {
                             tic.setfPago(contenidoLineaFormaPago);
                         }
                         this.pajaseros.add(tic); 
-
+                        //test
                     }
                 }    
             }
