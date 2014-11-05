@@ -35,7 +35,7 @@ public class ArchivoDAO extends Conexion {
             
             con.createStatement().executeUpdate("DELETE FROM segmentos WHERE ticket='" + tic.getTicket() + "'");
             
-            String numero_file = arc.getNumero_file();
+            String numero_file = arc.getNumeroFile();
             if(numero_file.length() > 0 && !numero_file.equals("")){
                 ResultSet resultado;
                 resultado = con.createStatement().executeQuery("SELECT num_file as num_file FROM file_ where num_file = "+numero_file);
@@ -55,17 +55,17 @@ public class ArchivoDAO extends Conexion {
                         + tic.getOldTicket() + "','"
                         + tic.getCodEmd() + "','"
                         + arc.getFechaEmision() + "','"
-                        + arc.getFecha_anulacion() + "','"
-                        + arc.getFecha_remision() + "','"
+                        + arc.getFechaAnulacion() + "','"
+                        + arc.getFechaRemision() + "','"
                         + tic.getPosicion() + "','"
                         + tic.getNombrePasajero() + "','"
                         + tic.getTipoPasajero() + "','"
                         + tic.getcLineaAerea() + "','"
                         + arc.getRuta() + "','"
                         + arc.getMoneda() + "','"
-                        + arc.getValor_neto() + "','"
-                        + arc.getValor_tasas() + "','"
-                        + arc.getValor_final() + "','"
+                        + arc.getValorNeto() + "','"
+                        + arc.getValorTasas() + "','"
+                        + arc.getValorFinal() + "','"
                         + tic.getComision() + "','"
                         + tic.getfPago() + "','"
                         + arc.getTipo() + "','"
@@ -81,13 +81,13 @@ public class ArchivoDAO extends Conexion {
                 con.createStatement().executeUpdate("DELETE FROM ticket WHERE cod_emd='" + tic.getCodEmd() + "'");
                 con.createStatement().executeUpdate("INSERT INTO ticket(" + campos_ticket + ") VALUES('"
                         + arc.getNumeroPnr() + "','"
-                        + arc.getNumero_file() + "','"
+                        + arc.getNumeroFile() + "','"
                         + tic.getTicket() + "','"
                         + "" + "','"
                         + tic.getCodEmd() + "','"
                         + arc.getFechaEmision()+ "','"
                         + "" + "','"
-                        + arc.getFecha_remision() + "','"
+                        + arc.getFechaRemision() + "','"
                         + tic.getPosicion() + "','"
                         + tic.getNombrePasajero() + "','"
                         + tic.getTipoPasajero() + "','"
@@ -95,7 +95,7 @@ public class ArchivoDAO extends Conexion {
                         + arc.getRuta() + "','"
                         + arc.getMoneda() + "','"
                         + "0" + "','"
-                        + arc.getValor_tasas() + "','"
+                        + arc.getValorTasas() + "','"
                         + tic.getValorEmd() + "','"
                         + tic.getComision() + "','"
                         + tic.getfPago() + "','"
