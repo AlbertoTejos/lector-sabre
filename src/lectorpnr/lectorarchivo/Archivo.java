@@ -144,57 +144,79 @@ public class Archivo {
                         String contenidoLineaFormaPago = getLineaString(getCharsLinea(lineaFormaPago), 1, 2);
                         
                         //Tasas
+
                         String signo1 = getLineaString(getCharsLinea(getIndexLinea(identificadorDelTicket)), 46, 1);
                         double tasa1 =  parseoSeguro(getLineaString(getCharsLinea(getIndexLinea("M2")), 47, 7));
                         String signo2 = getLineaString(getCharsLinea(getIndexLinea(identificadorDelTicket)), 56, 1);
                         double tasa2 =  parseoSeguro(getLineaString(getCharsLinea(getIndexLinea("M2")), 57, 7));
                         String signo3 = getLineaString(getCharsLinea(getIndexLinea(identificadorDelTicket)), 66, 1);
                         double tasa3 =  parseoSeguro(getLineaString(getCharsLinea(getIndexLinea("M2")), 67, 7));
-                        double tasa_final = getTasaFinal(signo1, tasa1, signo2, tasa2, signo3, tasa3);
-                        
+                        this.setValorTasas(getTasaFinal(signo1, tasa1, signo2, tasa2, signo3, tasa3));
+
                         //Moneda y valores 
                         this.setMoneda(getLineaString(getCharsLinea(getIndexLinea("M2")), 35, 3));
                         double neto = Double.parseDouble(getLineaString(getCharsLinea(getIndexLinea("M2")), 38, 8));
-                        double netoCLP = Double.parseDouble(getLineaString(getCharsLinea(getIndexLinea("M2")), 80, 8));
-                        String moneda_neto = getLineaString(getCharsLinea(getIndexLinea("M2")), 77, 3);
+                        double netoCLP = parseoSeguro(getLineaString(getCharsLinea(getIndexLinea("M2")), 80, 8));
+                        String moneda_neto = getLineaString(getCharsLinea(getIndexLinea("M2")), 77, 3).trim();
                         
+
                         if(getMoneda().equals("CLP")){
                             int int_neto = (int) neto;
-                            switch(moneda_neto){
-                                case "CLP":
-                                    int int_vt = (int) tasa_final;
-                                    this.setValorNeto(int_neto);
-                                    this.setValorTasas(int_vt);
-                                    this.setValorFinal(getValorNeto()-getValorTasas());
-                                    break;
-                                case "USD":
-                                    this.setValorNeto(neto);
-                                    this.setValorTasas(getValorTasas()*getValorTipoDeCambio());
-                                    this.setValorFinal(getValorNeto()-getValorTasas());
-                                    break;
+                            if(!moneda_neto.equals("")){
+                                switch(moneda_neto){
+                                    case "CLP":
+                                        int int_vt = (int) getValorTasas();
+                                        this.setValorNeto(int_neto);
+                                        this.setValorTasas(int_vt);
+                                        this.setValorFinal(int_neto-int_vt);
+                                        break;
+                                    case "USD":
+                                        this.setValorNeto(neto);
+                                        double tipoCambio = (netoCLP/neto);
+                                        this.setValorTasas(getValorTasas()*tipoCambio);
+                                        this.setValorFinal(getValorNeto()-getValorTasas());
+                                        break;
+                                }
+                            }else{
+                                int int_vt = (int) getValorTasas();
+                                this.setValorNeto(int_neto);
+                                this.setValorTasas(int_vt);
+                                this.setValorFinal(int_neto-int_vt);      
                             }
 
                         }
 
                         if(getMoneda().equals("USD")){
+                            if(!moneda_neto.equals("")){
                             switch (moneda_neto) {
                                 case "USD":
                                     this.setValorNeto(neto);
-                                    this.setValorTasas(tasa_final);
+                                    this.setValorTasas(getValorTasas());
                                     this.setValorFinal(getValorNeto()-getValorTasas());
                                     break;
                                 case "CLP":
+                                    int int_vt = (int) getValorTasas();
                                     this.setValorNeto(neto);
                                     this.setValorTipoDeCambio(netoCLP/getValorNeto());
-                                    this.setValorTasas(tasa_final/getValorTipoDeCambio());
+                                    this.setValorTasas(int_vt/getValorTipoDeCambio());
                                     this.setValorFinal(getValorNeto()-getValorTasas());
                                     break;
                                 }
+                            }else{
+                                this.setValorNeto(neto);
+                                this.setValorTasas(getValorTasas());
+                                this.setValorFinal(getValorNeto()-getValorTasas());
+                            }
                         }
                         //Investigar las siglas de las otras formas de pago
                         if (contenidoLineaFormaPago.equals("CA")) {
                             tic.setfPago(contenidoLineaFormaPago);
                         }
+
+
+
+
+
                         this.pajaseros.add(tic); 
                         //
                     }
@@ -300,17 +322,25 @@ public class Archivo {
             }
         }
     }
-    
+                                //"NO ADC"
     private double parseoSeguro(String variable){
         
         String trim = variable.trim();
-        if(!trim.equals("")){
-            double var;
-            var = Double.parseDouble(trim);
-            return var;
+        if (trim != null && trim.length() > 0) {
+            try {
+                return Double.parseDouble(trim.replaceAll("[^\\d.]", ""));
+            } catch(Exception e) {
+                return 0.0;   
+            }
         }
-        
-        return 0;
+         else return 0.0;
+//        String trim = variable.trim();
+//        if(!trim.equals("")){
+//            double soloDigitos = Double.parseDouble(trim.replaceAll("\\D+",""));
+//            return soloDigitos;
+//
+//        }
+//        return 0;
     }
     
     private double getTasaFinal(String signo1, double tasa1, String signo2, double tasa2, String signo3, double tasa3){
@@ -602,7 +632,7 @@ public class Archivo {
     public static void main(String[] args) throws FileNotFoundException, IOException{
         try {
         Archivo lc;
-        lc = new Archivo(new File("C:\\Users\\Felipe\\Desktop\\pruebas\\lectura\\GEQPSM00.PNR"));
+        lc = new Archivo(new File("C:\\Users\\Felipe\\Desktop\\pruebas\\lectura\\GDBZTY00.PNR"));
         System.out.println(lc);
             ArchivoDAO a = new ArchivoDAO();
             try {
