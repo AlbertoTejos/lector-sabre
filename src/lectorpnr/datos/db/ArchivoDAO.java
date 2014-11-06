@@ -35,13 +35,27 @@ public class ArchivoDAO extends Conexion {
             
             con.createStatement().executeUpdate("DELETE FROM segmentos WHERE ticket='" + tic.getTicket() + "'");
             
-            String numero_file = arc.getNumeroFile();
-            if(numero_file.length() > 0 && !numero_file.equals("")){
+            //NUM FILE
+            String numeroFile = arc.getNumeroFile();
+            if(numeroFile.length() > 0 && !numeroFile.equals("")){
                 ResultSet resultado;
-                resultado = con.createStatement().executeQuery("SELECT num_file as num_file FROM file_ where num_file = "+numero_file);
+                resultado = con.createStatement().executeQuery("SELECT num_file as num_file FROM file_ where num_file = "+numeroFile);
                 //SI LA CONSULTA NO TRAE FILAS DESDE LA TABLA FILE, EL NUM_FILE NO SE INSERTA
                 if(!resultado.next()) {
-                    numero_file = "";
+                    numeroFile = "";
+                }
+            }
+            
+            //LA
+            String codLineaArea = tic.getcLineaAerea();
+            if(!codLineaArea.equals("")){
+                ResultSet rs;
+                rs = con.createStatement().executeQuery("SELECT ciata FROM operad where codigo = '"+codLineaArea+"'");
+                if(rs.next() && !rs.wasNull()){
+                    // tic.setcLineaAerea(String.valueOf(rs.getInt("ciata")));
+                    tic.setcLineaAerea((rs.getString(1)));
+                    
+                    
                 }
             }
 
@@ -50,7 +64,7 @@ public class ArchivoDAO extends Conexion {
                 con.createStatement().executeUpdate("DELETE FROM ticket WHERE ticket='" + tic.getTicket() + "'");
                 con.createStatement().executeUpdate("INSERT INTO ticket(" + campos_ticket + ") VALUES('"
                         + arc.getNumeroPnr() + "','"
-                        + numero_file + "','"
+                        + numeroFile + "','"
                         + tic.getTicket() + "','"
                         + tic.getOldTicket() + "','"
                         + tic.getCodEmd() + "','"
@@ -81,7 +95,7 @@ public class ArchivoDAO extends Conexion {
                 con.createStatement().executeUpdate("DELETE FROM ticket WHERE cod_emd='" + tic.getCodEmd() + "'");
                 con.createStatement().executeUpdate("INSERT INTO ticket(" + campos_ticket + ") VALUES('"
                         + arc.getNumeroPnr() + "','"
-                        + arc.getNumeroFile() + "','"
+                        + numeroFile + "','"
                         + tic.getTicket() + "','"
                         + "" + "','"
                         + tic.getCodEmd() + "','"
