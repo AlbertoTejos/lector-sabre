@@ -632,7 +632,7 @@ public class Archivo {
     public static void main(String[] args) throws FileNotFoundException, IOException{
         try {
         Archivo lc;
-        lc = new Archivo(new File("C:\\Users\\Felipe\\Desktop\\pruebas\\lectura\\GDBZTY00.PNR"));
+        lc = new Archivo(new File("C:\\Users\\Felipe\\Desktop\\pruebas\\lectura\\LFOJPJ01.PNR"));
         System.out.println(lc);
             ArchivoDAO a = new ArchivoDAO();
             try {
