@@ -10,6 +10,7 @@ import java.awt.TrayIcon.MessageType;
 import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
@@ -77,30 +78,50 @@ public class TryIcon {
         }
         
         public void tareaBackgraund(){
-            System.out.println("Buscando archivos...");
-            Directorio a = new Directorio(param.getRuta_lectura(),param.getRuta_leidos(),param.getRuta_error());
+            System.out.println("Buscando archivos");
+            Directorio a = new Directorio(param.getRuta_lectura(), param.getRuta_leidos(), param.getRuta_error());
             int errores = 0;
             int leidos = 0;
             int cantidad = 0;
+            int rezagados = 0;
             if (a.hayNuevos()) {
+                ArchivoDAO adao = new ArchivoDAO();
                 File[] files = a.getNuevosFicheros();
                 cantidad = files.length;
-                System.out.println("Cantidad de archivos encontrados: "+cantidad);
+                System.out.println(cantidad);
                 for (File file : files) {
-                    Archivo lc=null;
+                    Archivo lc = null;
                     boolean exito = false;
                     try {
                         lc = new Archivo(file);
                         System.out.println(lc);
-                        ArchivoDAO adao = new ArchivoDAO();
-
                         adao.insertArchivo(lc);
-                        a.moverLeidos(file);
-                        leidos++;
-                        exito = true;
-                    } catch (IOException | IndexOutOfBoundsException  | SQLException ex ) {
-                        System.out.println("Error IO : "+file.getAbsolutePath()+"\n"+ex);
-                        System.out.println("");
+                        rezagados = adao.getRezagados();
+                        if (rezagados > 0) {
+
+                            ArrayList<Archivo> archivosRezagados = adao.archivosRezagados();
+                            //Hay 1 archivo en cola de espera
+                            //Anulando al ticket 18488545xxx...
+                            for (Archivo archivosRezagado : archivosRezagados) {
+                                
+                                try {
+                                    adao.insertArchivo(archivosRezagado);
+                                    a.moverLeidos(file); 
+                                    leidos++;
+                                    exito = true;
+                                } catch (SQLException | IOException e) { 
+                                    System.out.println(e.getMessage());
+                                }
+                                
+                            }
+                        } else {
+                            a.moverLeidos(file);
+                            leidos++;
+                            exito = true; 
+                        }
+
+                    } catch (IOException | SQLException ex) {
+                        System.out.println("Error IO : " + file.getAbsolutePath() + "\n" + ex);
                         errores++;
                         try {
                             a.moverErrores(file);
@@ -109,15 +130,16 @@ public class TryIcon {
                         }
                         exito = false;
                     }
-                    
+
                     Log logger = Log.getInstance();
-                    logger.agregarLog(lc , file,exito);
-                    
+                    logger.agregarLog(lc, file, exito);
+
                 }
-                
-                mensajeFinal(cantidad,leidos,errores);
+
+                mensajeFinal(cantidad, leidos, errores); 
 
             }
+
         }
         
         public void mensajeFinal(int cnt,int lei , int err){
